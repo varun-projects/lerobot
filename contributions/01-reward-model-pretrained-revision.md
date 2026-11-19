@@ -288,3 +288,21 @@ Quality hooks on the changed files (ruff format, ruff, typos, pyupgrade, gitleak
 ### AI assistance disclosure
 
 Per [AI_POLICY.md](https://github.com/huggingface/lerobot/blob/main/AI_POLICY.md): this change was written with AI assistance. The defect was confirmed by reading `configs/train.py` and `configs/rewards.py` on `main`, the test was run locally and verified to fail before the fix and pass after, and I have reviewed the diff. Flagging the two open questions above as the places where reviewer judgement would help most.
+
+---
+
+## Review follow-up: space-separated form
+
+Review feedback showed `--reward_model.pretrained_revision release/v2` (two tokens) was not
+recognised, so the revision resolved to `None`. `_get_override_value` now uses
+`parser.parse_arg(name, args=overrides or [])`, which accepts both `--key=value` and `--key value`,
+ignores a following `--flag`, and does not fall back to `sys.argv`. Two tests were added in
+`tests/configs/test_reward_model_revision.py`.
+
+```mermaid
+flowchart LR
+    A["--reward_model.pretrained_revision release/v2"] --> B["get_cli_overrides keeps 2 tokens"]
+    B --> C{"_get_override_value"}
+    C -- "before: only --k=v" --> D["revision = None"]
+    C -- "after: parse_arg" --> E["revision = release/v2"]
+```
