@@ -332,3 +332,23 @@ Quality hooks on the changed files (ruff format, ruff, typos, pyupgrade, bandit,
 ### AI assistance disclosure
 
 Per [AI_POLICY.md](https://github.com/huggingface/lerobot/blob/main/AI_POLICY.md): found and written with AI assistance. I verified it myself: confirmed via `gh pr view 4187 --json files` that the merged fix skipped `camera_zmq.py`, read `_cleanup()` on `main` to confirm it never stops the thread, and ran the test to see it fail with the "Context was terminated" warning before the fix and pass after.
+
+---
+
+## Review follow-up: join shorter than the receive timeout
+
+Review feedback: `_stop_read_thread()` joined for a fixed 2 s while `RCVTIMEO` is `timeout_ms` (default
+5 s), so a reader still inside `recv_string()` could have its socket closed underneath it. Now:
+
+- `_stop_read_thread()` joins for `timeout_ms / 1000 + 2` s and reports whether the thread exited.
+- `_cleanup()` closes the socket and terminates the context only if the reader exited; otherwise it
+  logs a warning and skips disposal.
+- Trade-off: worst-case `disconnect()` takes about `timeout_ms` + 2 s.
+
+```mermaid
+flowchart TD
+    A[_cleanup] --> B[_stop_read_thread: join timeout_ms + 2s]
+    B --> C{reader exited?}
+    C -- yes --> D[close socket, term context]
+    C -- no --> E[log warning, skip disposal]
+```
