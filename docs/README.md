@@ -14,6 +14,43 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
+# What's in `docs/`
+
+| Directory | Audience | Built & published? |
+| --- | --- | --- |
+| [`source/`](./source) | **Users** — installation, hardware guides, per-policy guides, tutorials | Yes — built by `doc-builder`, published to <https://huggingface.co/docs/lerobot>. The rest of this file explains how to build it. |
+| [`intro/`](./intro/README.md) | **Contributors** — a map of the codebase: architecture, module-by-module walkthroughs, flowcharts of the runtime | No — read on GitHub |
+| [`issue-deep-dives/`](./issue-deep-dives/README.md) | **Contributors** — real defects analysed end to end: root cause, fix, regression test | No — read on GitHub |
+
+**"How does LeRobot work, and where do I change it?"** →
+[`intro/README.md`](./intro/README.md). Twelve documents, heavy on Mermaid flowcharts, every
+claim anchored to a file and symbol in `src/lerobot/`:
+
+```
+01 Project Overview        — mission, the five pillars, repo layout, the CLI surface
+02 Architecture            — layers, dependency rules, the two universal data currencies
+03 Configuration & CLI     — draccus, ChoiceRegistry, the two-phase --policy.path resolution
+04 Robots & Teleoperators  — the Robot/Teleoperator contracts, calibration lifecycle
+05 Cameras                 — the background reader thread pattern and its hazards
+06 Motors & Calibration    — MotorsBus, normalization, the calibrate/write/read-back loop
+07 LeRobotDataset          — the v3 format, delta timestamps, writing, streaming
+08 Processor Pipeline      — EnvTransition, ProcessorStep, train/deploy parity
+09 Policies                — PreTrainedPolicy, action chunking, the factory, PEFT
+10 Training                — lerobot-train end to end, accelerate, checkpoints, the Hub
+11 Inference & Rollout     — lerobot-eval, lerobot-rollout, RTC, remote inference
+12 Reinforcement Learning  — HIL-SERL actor/learner, replay buffer, reward models
+```
+
+**"Show me how this code actually breaks."** →
+[`issue-deep-dives/README.md`](./issue-deep-dives/README.md) — two hard concurrency bugs in
+the camera layer and four medium contract bugs across motors, robots, the processor
+pipeline and the config system, each with a reproduction and the regression test that pins
+it.
+
+`intro/` and `issue-deep-dives/` are plain GitHub-flavoured Markdown with Mermaid diagrams.
+They are **not** part of the `doc-builder` build, so nothing in them can break the published
+site, and they do not need an entry in `source/_toctree.yml`.
+
 # Generating the documentation
 
 To generate the documentation, you first have to build it. Several packages are necessary to build the doc,
